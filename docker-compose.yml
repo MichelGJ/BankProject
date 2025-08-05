@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: bank_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  client-service:
+    build:
+      context: ./client-service
+      dockerfile: Dockerfile
+    container_name: client-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    restart: on-failure
+
+  account-service:
+    build:
+      context: ./account-service
+      dockerfile: Dockerfile
+    container_name: account-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+      - client-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    restart: on-failure
+    
+  test-runner:
+    image: maven:3-openjdk-17
+    container_name: test-runner
+    volumes:
+      - ./client-service:/app/client-service
+      - ./account-service:/app/account-service
+    working_dir: /app/client-service
+    command: mvn test 

@@ -1,0 +1,8 @@
+com/example/bank/client/repository/ClienteRepository.class
+com/example/bank/client/service/ClienteService.class
+com/example/bank/client/controller/ClienteController.class
+com/example/bank/client/ClientServiceApplication.class
+com/example/bank/client/model/Persona.class
+com/example/bank/client/exception/GlobalExceptionHandler.class
+com/example/bank/client/exception/ResourceNotFoundException.class
+com/example/bank/client/model/Cliente.class

@@ -1,0 +1,8 @@
+/app/client-service/src/main/java/com/example/bank/client/ClientServiceApplication.java
+/app/client-service/src/main/java/com/example/bank/client/controller/ClienteController.java
+/app/client-service/src/main/java/com/example/bank/client/exception/GlobalExceptionHandler.java
+/app/client-service/src/main/java/com/example/bank/client/exception/ResourceNotFoundException.java
+/app/client-service/src/main/java/com/example/bank/client/model/Cliente.java
+/app/client-service/src/main/java/com/example/bank/client/model/Persona.java
+/app/client-service/src/main/java/com/example/bank/client/repository/ClienteRepository.java
+/app/client-service/src/main/java/com/example/bank/client/service/ClienteService.java
