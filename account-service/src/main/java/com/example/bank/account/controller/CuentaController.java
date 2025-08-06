@@ -2,6 +2,7 @@ package com.example.bank.account.controller;
 
 import com.example.bank.account.model.Cuenta;
 import com.example.bank.account.service.CuentaService; // Changed
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class CuentaController {
     }
 
     @PostMapping
-    public ResponseEntity<Cuenta> createCuenta(@RequestBody Cuenta cuenta) {
+    public ResponseEntity<Cuenta> createCuenta(@Valid  @RequestBody Cuenta cuenta) {
         return new ResponseEntity<>(cuentaService.createCuenta(cuenta), HttpStatus.CREATED);
     }
 

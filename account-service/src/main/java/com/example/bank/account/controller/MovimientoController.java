@@ -4,6 +4,7 @@ import com.example.bank.account.dto.ReporteEstadoCuentaDTO;
 import com.example.bank.account.model.Cuenta;
 import com.example.bank.account.model.Movimiento;
 import com.example.bank.account.service.MovimientoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class MovimientoController {
     }
 
     @PostMapping
-    public ResponseEntity<Movimiento> createMovimiento(@RequestBody Movimiento movimiento) {
+    public ResponseEntity<Movimiento> createMovimiento(@Valid @RequestBody Movimiento movimiento) {
         return new ResponseEntity<>(movimientoService.createMovimiento(movimiento), HttpStatus.CREATED);
     }
 

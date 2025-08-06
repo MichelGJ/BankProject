@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.web.client.RestTemplate;
 
@@ -45,19 +47,23 @@ public class MovimientoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id " + id));
     }
 
+
     @Transactional
     public Movimiento createMovimiento(Movimiento movimiento) {
         Cuenta cuenta = cuentaRepository.findById(movimiento.getCuenta().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id " + movimiento.getCuenta().getId()));
 
-        BigDecimal newSaldo = cuenta.getSaldoInicial().add(movimiento.getValor());
-        if (newSaldo.compareTo(BigDecimal.ZERO) < 0) {
+        // Use saldoActual for the calculation
+        BigDecimal newSaldoActual = cuenta.getSaldoActual().add(movimiento.getValor());
+        if (newSaldoActual.compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("Saldo no disponible");
         }
-        cuenta.setSaldoInicial(newSaldo);
+
+        // Update the new saldo actual
+        cuenta.setSaldoActual(newSaldoActual);
 
         movimiento.setFecha(LocalDateTime.now());
-        movimiento.setSaldoDisponible(newSaldo);
+        movimiento.setSaldoDisponible(newSaldoActual); // saldoDisponible should reflect the new actual balance
         movimiento.setCuenta(cuenta);
 
         cuentaRepository.save(cuenta);
@@ -65,38 +71,52 @@ public class MovimientoService {
     }
 
 
-    public ReporteEstadoCuentaDTO generateReporteEstadoCuenta(Long clienteId, Date fechaInicio, Date fechaFin) {
+    public ReporteClienteDTO generateReporteEstadoCuenta(Long clienteId, LocalDate fechaInicio, LocalDate fechaFin) {
 
-        ReporteEstadoCuentaDTO reporte = new ReporteEstadoCuentaDTO();
-
-        List<Cuenta> cuentas = cuentaRepository.findByClienteId(clienteId);
-        if (cuentas.isEmpty()) {
-            throw new RuntimeException("Cliente con ID " + clienteId + " no tiene cuentas.");
-        }
-
-        Cuenta cuenta = cuentas.get(0);
+        ReporteClienteDTO reporteCliente = new ReporteClienteDTO();
 
         String clientServiceUrl = "http://client-service:8080/clientes/" + clienteId;
         ClienteDTO clienteDto = restTemplate.getForObject(clientServiceUrl, ClienteDTO.class);
-
-        if (clienteDto == null) {
+        if (clienteDto != null) {
+            reporteCliente.setClienteNombre(clienteDto.getPersona().getNombre());
+        } else {
             throw new RuntimeException("No se pudo encontrar el cliente con ID " + clienteId);
         }
 
-        reporte.setClienteNombre(clienteDto.getPersona().getNombre());
-        reporte.setNumeroCuenta(cuenta.getNumeroCuenta());
-        reporte.setTipoCuenta(cuenta.getTipoCuenta());
-        reporte.setSaldoInicial(cuenta.getSaldoInicial().doubleValue());
+        List<Cuenta> cuentas = cuentaRepository.findByClienteId(clienteId);
 
-        List<Movimiento> movimientos = movimientoRepository.findByCuentaClienteIdAndFechaBetween(clienteId, fechaInicio, fechaFin);
-        reporte.setMovimientos(movimientos);
+        List<ReporteEstadoCuentaDTO> reportesCuentas = new ArrayList<>();
+        LocalDateTime inicioDelDia = fechaInicio.atStartOfDay();
+        LocalDateTime finDelDia = fechaFin.atTime(LocalTime.MAX);
 
-        BigDecimal saldoFinal = cuenta.getSaldoInicial();
-        for (Movimiento movimiento : movimientos) {
-            saldoFinal = saldoFinal.add(movimiento.getValor());
+        for (Cuenta cuenta : cuentas) {
+            ReporteEstadoCuentaDTO reporteCuenta = new ReporteEstadoCuentaDTO();
+
+            reporteCuenta.setNumeroCuenta(cuenta.getNumeroCuenta());
+            reporteCuenta.setTipoCuenta(cuenta.getTipoCuenta());
+
+            List<Movimiento> movimientos = movimientoRepository.findByCuentaIdAndFechaBetween(
+                    cuenta.getId(),
+                    inicioDelDia,
+                    finDelDia
+            );
+            reporteCuenta.setMovimientos(movimientos);
+
+            BigDecimal totalMovimientosEnPeriodo = movimientos.stream()
+                    .map(Movimiento::getValor)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal saldoInicialReporte = cuenta.getSaldoActual().subtract(totalMovimientosEnPeriodo);
+            reporteCuenta.setSaldoInicial(saldoInicialReporte.doubleValue());
+
+            BigDecimal saldoFinalReporte = cuenta.getSaldoActual();
+            reporteCuenta.setSaldoFinal(saldoFinalReporte.doubleValue());
+
+            reportesCuentas.add(reporteCuenta);
         }
-        reporte.setSaldoFinal(saldoFinal.doubleValue());
 
-        return reporte;
+        reporteCliente.setCuentas(reportesCuentas);
+
+        return reporteCliente;
     }
 }

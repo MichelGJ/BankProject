@@ -3,22 +3,13 @@ package com.example.bank.account.dto;
 import com.example.bank.account.model.Movimiento;
 import java.util.List;
 
+// DTO for a single account's report, as you already have
 public class ReporteEstadoCuentaDTO {
-
-    private String clienteNombre;
     private Long numeroCuenta;
     private String tipoCuenta;
-    private double saldoInicial;
-    private double saldoFinal;
+    private Double saldoInicial;
+    private Double saldoFinal;
     private List<Movimiento> movimientos;
-
-    public String getClienteNombre() {
-        return clienteNombre;
-    }
-
-    public void setClienteNombre(String clienteNombre) {
-        this.clienteNombre = clienteNombre;
-    }
 
     public Long getNumeroCuenta() {
         return numeroCuenta;
@@ -36,19 +27,19 @@ public class ReporteEstadoCuentaDTO {
         this.tipoCuenta = tipoCuenta;
     }
 
-    public double getSaldoInicial() {
+    public Double getSaldoInicial() {
         return saldoInicial;
     }
 
-    public void setSaldoInicial(double saldoInicial) {
+    public void setSaldoInicial(Double saldoInicial) {
         this.saldoInicial = saldoInicial;
     }
 
-    public double getSaldoFinal() {
+    public Double getSaldoFinal() {
         return saldoFinal;
     }
 
-    public void setSaldoFinal(double saldoFinal) {
+    public void setSaldoFinal(Double saldoFinal) {
         this.saldoFinal = saldoFinal;
     }
 

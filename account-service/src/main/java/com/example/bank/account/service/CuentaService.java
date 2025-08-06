@@ -23,24 +23,6 @@ public class CuentaService {
     @Autowired
     private MovimientoRepository movimientoRepository;
 
-    @Transactional
-    public Movimiento createMovimiento(Movimiento movimiento) {
-        Cuenta cuenta = cuentaRepository.findById(movimiento.getCuenta().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with id " + movimiento.getCuenta().getId()));
-
-        BigDecimal newSaldo = cuenta.getSaldoInicial().add(movimiento.getValor());
-        if (newSaldo.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("Saldo no disponible");
-        }
-        cuenta.setSaldoInicial(newSaldo);
-
-        movimiento.setFecha(LocalDateTime.now());
-        movimiento.setSaldoDisponible(newSaldo);
-        movimiento.setCuenta(cuenta);
-
-        cuentaRepository.save(cuenta);
-        return movimientoRepository.save(movimiento);
-    }
 
     public List<Cuenta> getAllCuentas() {
         return cuentaRepository.findAll();
@@ -52,6 +34,8 @@ public class CuentaService {
     }
 
     public Cuenta createCuenta(Cuenta cuenta) {
+        cuenta.setSaldoActual(BigDecimal.valueOf(0));
+        cuenta.setSaldoInicial(BigDecimal.valueOf(0));
         return cuentaRepository.save(cuenta);
     }
 

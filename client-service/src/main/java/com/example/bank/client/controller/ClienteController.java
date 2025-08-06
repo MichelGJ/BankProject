@@ -2,6 +2,7 @@ package com.example.bank.client.controller;
 
 import com.example.bank.client.model.Cliente;
 import com.example.bank.client.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,13 +29,13 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> createCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<Cliente> createCliente(@Valid @RequestBody Cliente cliente) {
         Cliente createdCliente = clientService.createCliente(cliente);
         return new ResponseEntity<>(createdCliente, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> updateCliente(@PathVariable Long id, @RequestBody Cliente clienteDetails) {
+    public ResponseEntity<Cliente> updateCliente(@PathVariable Long id, @Valid @RequestBody Cliente clienteDetails) {
         Cliente updatedCliente = clientService.updateCliente(id, clienteDetails);
         return ResponseEntity.ok(updatedCliente);
     }
